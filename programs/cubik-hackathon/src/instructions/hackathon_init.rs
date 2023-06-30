@@ -12,7 +12,7 @@ pub struct HackathonInitContext<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 1 + 32 + 4,
+        space = 8 + 1 + 32 + 8,
         seeds=[b"hackathon".as_ref(),authority.key().as_ref(),counter.as_ref()],
         bump,
     )]
@@ -32,6 +32,6 @@ let hackathon_account =  &mut ctx.accounts.hackathon_account;
     hackathon_account.authority = *ctx.accounts.authority.key;
     hackathon_account.counter = counter;
     hackathon_account.bump = *ctx.bumps.get("hackathon_account").unwrap();
-   
+    
     Ok(())
 }

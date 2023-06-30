@@ -1,4 +1,3 @@
-use anchor_lang::prelude::Pubkey;
 use anchor_lang::prelude::*;
 
 #[account]
@@ -7,7 +6,6 @@ pub struct  Hackathon {
    pub authority: Pubkey,
    pub counter: String,
    pub bump: u8,
-
 }
 #[account]
 #[derive(Default)]
