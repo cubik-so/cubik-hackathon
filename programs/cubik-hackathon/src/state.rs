@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 #[derive(Default)]
 pub struct  Hackathon {
    pub authority: Pubkey,
-   pub counter: String,
+   pub counter: u16,
    pub bump: u8,
 }
 #[account]

@@ -4,7 +4,7 @@ use anchor_lang::solana_program::{self, system_program, sysvar::rent::Rent};
 use crate::state::Hackathon;
 
 #[derive(Accounts)]
-#[instruction(counter: String)]
+#[instruction(counter: u16)]
 pub struct HackathonInitContext<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -13,7 +13,7 @@ pub struct HackathonInitContext<'info> {
         init,
         payer = authority,
         space = 8 + 1 + 32 + 8,
-        seeds=[b"hackathon".as_ref(),authority.key().as_ref(),counter.as_ref()],
+        seeds=[b"hackathon".as_ref(),authority.key().as_ref(),counter.to_le_bytes().as_ref()],
         bump,
     )]
     pub hackathon_account: Account<'info, Hackathon>,
@@ -27,7 +27,7 @@ pub struct HackathonInitContext<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<HackathonInitContext>,counter:String) -> Result<()> {
+pub fn handler(ctx: Context<HackathonInitContext>,counter:u16) -> Result<()> {
 let hackathon_account =  &mut ctx.accounts.hackathon_account;
     hackathon_account.authority = *ctx.accounts.authority.key;
     hackathon_account.counter = counter;

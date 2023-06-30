@@ -9,7 +9,7 @@ use mpl_token_metadata::{instruction as token_instruction, ID as TOKEN_METADATA_
 use mpl_token_metadata::{instruction::{create_master_edition_v3,create_metadata_accounts_v3,update_metadata_accounts_v2,freeze_delegated_account}};
 
 #[derive(Accounts)]
-#[instruction(_counter: String,_hackathon_owner:Pubkey)]
+#[instruction(_counter: u16)]
 pub struct MintPowNft<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -26,18 +26,14 @@ pub struct MintPowNft<'info> {
     #[account(
         init,
         payer=authority,
-        seeds=[b"participant".as_ref(),hackathon_account.to_account_info().key().as_ref(),authority.key().as_ref()],
+        seeds=[b"participant".as_ref(), _counter.to_le_bytes().as_ref(),authority.key().as_ref()],
         bump,
         space=8+1+32+4,
     )]
     pub participant_account: Account<'info, Participant>,
 
-      #[account(
-        mut,
-        seeds=[b"hackathon".as_ref(),_hackathon_owner.as_ref(),_counter.as_ref()],
-        bump = hackathon_account.bump,
-    )]
-    pub hackathon_account: Account<'info, Hackathon>,
+     
+
     #[account(init, payer = authority, associated_token::mint = mint, associated_token::authority = authority)]
     pub pow_nft_ata: Box<Account<'info, TokenAccount>>,
 
@@ -64,13 +60,14 @@ pub struct MintPowNft<'info> {
 }
 
 
-pub fn handler(ctx: Context<MintPowNft>,name:String,symbol:String,metadata_url:String,_counter: String,_hackathon_owner:Pubkey) -> Result<()> {
+pub fn handler(ctx: Context<MintPowNft>,name:String,symbol:String,metadata_url:String,_counter: u16,) -> Result<()> {
     
     let participant_account = &mut ctx.accounts.participant_account;
     participant_account.authority = ctx.accounts.authority.key();
     participant_account.is_winner = false;
     participant_account.bump = *ctx.bumps.get("participant_account").unwrap();
-    msg!("Participant Account {:?}",ctx.accounts.hackathon_account.to_account_info().key());
+
+
     let cpi_accounts = MintTo {
         mint: ctx.accounts.mint.to_account_info().clone(),
         to: ctx.accounts.pow_nft_ata.to_account_info().clone(),
@@ -180,7 +177,8 @@ pub fn handler(ctx: Context<MintPowNft>,name:String,symbol:String,metadata_url:S
 
 
     let authority_participant = ctx.accounts.authority.key();
-    let binding = ctx.accounts.hackathon_account.key();
+    let binding = _counter.to_le_bytes();
+    
     let participant_account_seeds = &[
         "participant".as_bytes(),
         binding.as_ref(),

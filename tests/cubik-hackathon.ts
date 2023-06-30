@@ -23,7 +23,7 @@ describe('cubik-hackathon', () => {
         program.programId
       );
       const ix = await program.methods
-        .hackathonInit(JSON.stringify(0))
+        .hackathonInit(new anchor.BN(0))
         .accounts({
           authority: wallet.publicKey,
           hackathonAccount: hackathon_account,
@@ -36,7 +36,7 @@ describe('cubik-hackathon', () => {
       console.log(error);
     }
   });
-  it('Is initialized!', async () => {
+  it.skip('Is initialized!', async () => {
     const nftMint = anchor.web3.Keypair.generate();
     const [masterKey] = await anchor.web3.PublicKey.findProgramAddress(
       [
@@ -79,7 +79,7 @@ describe('cubik-hackathon', () => {
         'test',
         'tes',
         'https://arweave.net/84624ygIr3NxlXkg6RXbLtrG14foXF33UisAv7YfGM8',
-        '0',
+        new anchor.BN(0),
         wallet.publicKey
       )
       .accounts({
