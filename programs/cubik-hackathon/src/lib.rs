@@ -4,7 +4,7 @@ pub mod instructions;
 pub mod state;
 
 use instructions::*;
-declare_id!("GCpmUwiZm2rX2X6VWtB1y7w2MMLvR8M2UnNTioYMdTyt");
+declare_id!("DQDrRfiaqSzbSJCL9BMzPd6TfgLmDHxCEQDCrjoK9jCF");
 
 #[program]
 pub mod cubik_hackathon {
@@ -16,8 +16,13 @@ pub mod cubik_hackathon {
         Ok(())
     }
 
-    pub fn create_participant_nft(ctx: Context<MintPowNft>,name:String,symbol:String,metadata_url:String,counter: u16,_hackathon_owner:Pubkey) -> Result<()> {
-        create_participant_nft::handler(ctx,name,symbol,metadata_url,counter);
+    pub fn create_participant_nft(ctx: Context<MintPowNft>,counter: String,counter2:u16,name:String,symbol:String,metadata_url:String) -> Result<()> {
+        create_participant_nft::handler(ctx,counter,counter2,name,symbol,metadata_url);
+         Ok(())
+    } 
+
+    pub fn  participant(ctx: Context<TestMint>,name:String,symbol:String,metadata_url:String,counter: u16,create_key:Pubkey) -> Result<()> {
+        participant::handler(ctx,name,symbol,metadata_url,counter,create_key);
          Ok(())
     } 
    

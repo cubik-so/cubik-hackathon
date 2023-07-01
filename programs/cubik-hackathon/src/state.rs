@@ -8,10 +8,9 @@ pub struct  Hackathon {
    pub bump: u8,
 }
 #[account]
-#[derive(Default)]
 pub struct  Participant {
    pub authority: Pubkey,
-  pub  is_winner: bool,
-  pub  bump: u8,
+   pub  is_winner: bool,
+   pub  bump: u8,
 
 }
