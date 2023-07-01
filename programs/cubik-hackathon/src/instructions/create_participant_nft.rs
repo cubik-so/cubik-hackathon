@@ -9,7 +9,7 @@ use mpl_token_metadata::{instruction as token_instruction, ID as TOKEN_METADATA_
 use mpl_token_metadata::{instruction::{create_master_edition_v3,create_metadata_accounts_v3,update_metadata_accounts_v2,freeze_delegated_account}};
 
 #[derive(Accounts)]
-#[instruction(counter: String,counter2:u16)]
+#[instruction(counter:u16,hackathon_account_authority:Pubkey)]
 pub struct MintPowNft<'info> {
 
     #[account(mut)]
@@ -34,8 +34,8 @@ pub struct MintPowNft<'info> {
     pub participant_account: Account<'info, Participant>,
 
  #[account(mut,
-        seeds=[b"hackathon".as_ref(),hackathon_account.authority.key().as_ref(),counter2.to_le_bytes().as_ref()],
-        bump,
+        seeds=[b"hackathon".as_ref(),hackathon_account_authority.key().as_ref(),counter.to_le_bytes().as_ref()],
+        bump = hackathon_account.bump,
     )]
     pub hackathon_account: Account<'info, Hackathon>,
 
@@ -67,7 +67,7 @@ pub struct MintPowNft<'info> {
 }
 
 
-pub fn handler(ctx: Context<MintPowNft>,counter: String,counter2:u16,name:String,symbol:String,metadata_url:String,) -> Result<()> {
+pub fn handler(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:Pubkey,name:String,symbol:String,metadata_url:String,) -> Result<()> {
     
     let participant_account = &mut ctx.accounts.participant_account;
     let hackathon_account = &mut ctx.accounts.hackathon_account;

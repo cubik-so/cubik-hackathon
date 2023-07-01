@@ -16,8 +16,8 @@ pub mod cubik_hackathon {
         Ok(())
     }
 
-    pub fn create_participant_nft(ctx: Context<MintPowNft>,counter: String,counter2:u16,name:String,symbol:String,metadata_url:String) -> Result<()> {
-        create_participant_nft::handler(ctx,counter,counter2,name,symbol,metadata_url);
+    pub fn create_participant_nft(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:Pubkey,name:String,symbol:String,metadata_url:String) -> Result<()> {
+        create_participant_nft::handler(ctx,counter,hackathon_account_authority,name,symbol,metadata_url);
          Ok(())
     } 
 
