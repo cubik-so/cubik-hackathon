@@ -14,24 +14,71 @@ describe('cubik-hackathon', () => {
   it('Is initialized!', async () => {
     try {
       // Add your test here.
+
+      const counter = 1;
+      const name = 'test';
+      const symbol = 'test';
+      const uri =
+        'https://arweave.net/84624ygIr3NxlXkg6RXbLtrG14foXF33UisAv7YfGM8';
+      const nftMint = anchor.web3.Keypair.generate();
+      const [masterKey] = anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          nftMint.publicKey.toBuffer(),
+          Buffer.from('edition'),
+        ],
+        TOKEN_METADATA_PROGRAM_ID
+      );
+
+      const [metadatakey] = anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          nftMint.publicKey.toBuffer(),
+        ],
+        TOKEN_METADATA_PROGRAM_ID
+      );
       const [hackathon_account] = anchor.web3.PublicKey.findProgramAddressSync(
         [
           Buffer.from('hackathon'),
           wallet.publicKey.toBuffer(),
-          Buffer.from(JSON.stringify(0)),
+          new anchor.BN(counter).toArrayLike(Buffer, 'le', 2),
         ],
         program.programId
       );
+      console.log('hackathon_account', hackathon_account.toBase58());
+      const [mint_account] = anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('collection'),
+          wallet.publicKey.toBuffer(),
+          new anchor.BN(counter).toArrayLike(Buffer, 'le', 2),
+        ],
+        program.programId
+      );
+      console.log('mint_account', mint_account.toBase58());
+      const collection_ata = spl.getAssociatedTokenAddressSync(
+        nftMint.publicKey,
+        hackathon_account,
+        true
+      );
+      console.log('collection ata', collection_ata.toBase58());
       const ix = await program.methods
-        .hackathonInit(new anchor.BN(0))
+        .createCollection(counter, name, symbol, uri)
         .accounts({
           authority: wallet.publicKey,
           hackathonAccount: hackathon_account,
+          associatedTokenProgram: spl.ASSOCIATED_TOKEN_PROGRAM_ID,
+          masterEdition: masterKey,
           rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+          metadata: metadatakey,
+          mplProgram: TOKEN_METADATA_PROGRAM_ID,
+          mint: mint_account,
+          tokenProgram: spl.TOKEN_PROGRAM_ID,
+          collectionAta: collection_ata,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc();
-      console.log(ix);
     } catch (error) {
       console.log(error);
     }
