@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{self,system_program,program::{invoke,invoke_signed}, sysvar::rent::Rent,};
 use anchor_spl::token::{self,MintTo,Token,Mint,Transfer, TokenAccount,Approve};
 use anchor_spl::associated_token::{self,AssociatedToken};
+use mpl_token_metadata::instruction::set_and_verify_collection;
 // use mpl_token_metadata::{self};
 use crate::state::*;
 use mpl_token_metadata::state::{Creator, Collection};
@@ -44,6 +45,10 @@ pub struct MintPowNft<'info> {
     #[account(init, payer = authority, associated_token::mint = mint, associated_token::authority = authority)]
     pub pow_nft_ata: Box<Account<'info, TokenAccount>>,
 
+     /// CHECK: Used in CPI So no Harm
+    #[account(mut)]
+    pub collection: AccountInfo<'info>,
+
     /// CHECK: Program ID for CPI No Danger
     #[account(address = mpl_token_metadata::id())]
     pub mpl_program: AccountInfo<'info>,
@@ -51,6 +56,10 @@ pub struct MintPowNft<'info> {
     /// CHECK: Used in CPI So no Harm
     #[account(mut)]
     pub metadata: AccountInfo<'info>,
+
+    /// CHECK: Used in CPI So no Harm
+    #[account(mut)]
+    pub metadata_collection: AccountInfo<'info>,
 
     #[account(mut)]
     /// CHECK: Used in CPI So no Harm
@@ -85,6 +94,7 @@ pub fn handler(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:
     
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
     token::mint_to(cpi_ctx, 1)?;
 
     let creators = vec![Creator {
@@ -93,6 +103,10 @@ pub fn handler(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:
         share: 100,
     }];
 
+    let collection = Collection {
+    verified: false,
+    key: ctx.accounts.collection.key()
+};
     let seller_fee_basis_points:u16= 10000;
 
     
@@ -110,7 +124,7 @@ pub fn handler(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:
         seller_fee_basis_points,
         true,
         true,
-            None,
+            Some(collection),
         None,
         None
       );
@@ -155,6 +169,27 @@ pub fn handler(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:
     )?;
 
 
+    let collection_ix = set_and_verify_collection(ctx.accounts.mpl_program.key(), ctx.accounts.metadata.key(), hackathon_account.to_account_info().key(), ctx.accounts.authority.key(), hackathon_account.to_account_info().key(), ctx.accounts.collection.to_account_info().key(), ctx.accounts.metadata_collection.key(), ctx.accounts.master_edition.key(), None);
+
+  let binding = counter.to_le_bytes();
+  let hackathon_account_seeds = &[
+        "hackathon".as_bytes(),
+        hackathon_account_authority.as_ref(),
+        binding.as_ref(), 
+        &[ctx.accounts.hackathon_account.bump]
+    ];
+     invoke_signed(
+        &collection_ix,
+        &[
+            ctx.accounts.collection.to_account_info(),
+            ctx.accounts.metadata_collection.to_account_info(),
+            ctx.accounts.master_edition.to_account_info(),
+            ctx.accounts.mpl_program.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
+        ],&[hackathon_account_seeds])?;
+
     let update_ix = update_metadata_accounts_v2(
         ctx.accounts.mpl_program.key(),
         ctx.accounts.metadata.key(),
@@ -195,7 +230,7 @@ pub fn handler(ctx: Context<MintPowNft>,counter:u16,hackathon_account_authority:
         &[ctx.accounts.participant_account.bump]
     ];
 
-     // freeze Talent ATA
+
      invoke_signed(
         &freeze_delegated_account(
             *ctx.accounts.mpl_program.key,

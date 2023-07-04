@@ -25,6 +25,11 @@ pub mod cubik_hackathon {
         participant::handler(ctx,name,symbol,metadata_url,counter,create_key);
          Ok(())
     } 
+
+    pub fn create_collection(ctx: Context<CreateCollection>,counter:u16,name:String,symbol:String,metadata_url:String) -> Result<()> {
+        create_collection::handler(ctx,counter,name,symbol,metadata_url);
+         Ok(())
+    }
    
 }
 
